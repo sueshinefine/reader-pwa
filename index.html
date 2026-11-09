@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>工具箱</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="color-scheme" content="light" />
+  <meta name="description" content="小说章节标题格式转换：支持 txt / epub / mobi，可在线阅读" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="阅读工具箱" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 首页：对应小程序 pages/index -->
+    <section class="screen active" id="screen-home">
+      <header class="nav">
+        <div class="nav-inner">
+          <span class="nav-title">工具箱</span>
+        </div>
+      </header>
+      <main class="scrollarea">
+        <div class="entry-list">
+          <button type="button" class="entry-btn" data-nav="converter">
+            <span class="entry-icon entry-icon-purple" aria-hidden="true">📖</span>
+            <span class="entry-info">
+              <span class="entry-title">文本转换</span>
+              <span class="entry-desc">小说章节标题格式统一，支持 txt / epub / mobi</span>
+            </span>
+            <span class="entry-arrow" aria-hidden="true">›</span>
+          </button>
+        </div>
+        <p class="home-tip">可添加到主屏幕离线使用：Safari 分享菜单 → 添加到主屏幕。</p>
+      </main>
+    </section>
+
+    <!-- 文本转换：对应小程序 pages/text-converter -->
+    <section class="screen" id="screen-converter">
+      <header class="nav">
+        <div class="nav-inner">
+          <button type="button" class="nav-back" data-back="home" aria-label="返回"></button>
+          <span class="nav-title">文本转换</span>
+        </div>
+      </header>
+      <main class="scrollarea">
+        <div class="page-body">
+          <div class="card">
+            <h1 class="card-title">📖 小说章节标题格式转换工具</h1>
+            <p class="card-subtitle">选择 txt / epub / mobi 文件 → 预览内容 → 统一章节标题格式 → 保存 txt</p>
+
+            <div class="toolbar">
+              <button type="button" class="btn btn-upload" id="btn-choose">📁 选择文件</button>
+              <button type="button" class="btn btn-convert btn-disabled" id="btn-convert" disabled>🔄 转换</button>
+              <button type="button" class="btn btn-download btn-disabled" id="btn-save" disabled>💾 保存</button>
+            </div>
+
+            <p class="file-tip">当前文件：<span class="file-name" id="file-name">未选择</span></p>
+            <p class="file-tip">支持类型：.txt（自动识别 UTF-8 / GBK 编码）、.epub（自动提取正文）、.mobi（尝试提取文本）。iPhone 上点击「选择文件」可从「文件」App、iCloud 云盘或下载目录中选取。</p>
+
+            <div class="feature-box">
+              <p class="feature-title">📚 EPUB → TXT 快速转换</p>
+              <p class="file-tip">直接提取 EPUB 正文并保存为 .txt 文件（保留原始排版，不做章节标题格式化）。若需统一章节标题，请使用上方的「选择文件 → 转换 → 保存」流程。</p>
+              <button type="button" class="btn btn-epub" id="btn-epub">📚 选择 EPUB 并转换为 TXT</button>
+            </div>
+
+            <div class="status hidden" id="status" role="status" aria-live="polite"></div>
+
+            <div class="reader-row">
+              <button type="button" class="btn btn-reader btn-disabled" id="btn-reader" disabled>📖 在线阅读</button>
+            </div>
+
+            <p class="preview-label">文本预览（可直接编辑）：</p>
+            <textarea class="preview" id="preview" placeholder="请先选择文件……" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+
+            <div class="rules">
+              <p class="rules-title">转换规则说明：</p>
+              <p>1. 章节标题统一为「第X章 标题」格式（数字统一为阿拉伯数字，如「第一章 重生」→「第1章 重生」）；</p>
+              <p>2. 标题独占一行，行首自动去除空格、制表符及「正文:」等多余文字；</p>
+              <p>3. 兼容「第一章」「第1章」「第 一 章」「1. 标题」「Chapter 1」等常见写法；</p>
+              <p>4. 标题与正文之间自动保留一个空行，正文内容不做改动；</p>
+              <p>5. 兼容缺少编号的写法（如「第章NO XXX」「第章 XXX」「章 XXX」），按出现顺序自动补全章节序号，章号后的文字作为标题。</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- 在线阅读：对应小程序 pages/reader -->
+    <section class="screen" id="screen-reader">
+      <header class="nav">
+        <div class="nav-inner">
+          <button type="button" class="nav-back" data-back="converter" aria-label="返回"></button>
+          <span class="nav-title">在线阅读</span>
+          <button type="button" class="nav-action" id="btn-toc">目录</button>
+        </div>
+      </header>
+
+      <div class="reader-body" id="reader-body">
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <span class="sidebar-title" id="toc-title">📖 目录</span>
+            <button type="button" class="sidebar-toggle" id="btn-sidebar-toggle" aria-label="收起目录">◀</button>
+          </div>
+          <div class="toc-scroll" id="toc-scroll"></div>
+        </aside>
+
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <main class="content-scroll" id="content-scroll">
+          <div class="content-body" id="content-body"></div>
+          <p class="finish-tip">— 全文完 —</p>
+        </main>
+      </div>
+
+      <div class="empty-tip hidden" id="reader-empty">
+        <div class="empty-icon">📭</div>
+        <div>暂无阅读内容</div>
+        <div class="empty-sub">请先在「文本转换」页选择文件，再点击「在线阅读」。</div>
+        <button type="button" class="btn btn-upload empty-btn" data-back="converter">返回文本转换</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="loading-mask hidden" id="loading-mask">
+    <div class="loading-box"><span class="spinner"></span><span id="loading-text">处理中…</span></div>
+  </div>
+
+  <input type="file" id="file-input" class="file-input" tabindex="-1" aria-hidden="true" />
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
