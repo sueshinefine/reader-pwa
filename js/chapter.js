@@ -77,6 +77,19 @@ function looksLikeTitle(s) {
   return !/[。！？；]$/g.test(s.trim()) && s.trim().length <= 50
 }
 
+// 「数字+内容」类判定：排除正文中以数字开头的数量、日期、金额等句子
+function looksLikeDirectTitle(s) {
+  const t = (s || '').trim()
+  if (!looksLikeTitle(t)) return false // 含句末标点或过长 => 正文
+  const body = t.replace(/^[章回节卷]\s*/, '') // 兼容「1章 标题」写法
+  if (body.length < 2) return false // 如「3个」「5元」等过短的行
+  // 数字后紧跟计量/时间等单位时视为正文
+  if (/^[年月日号时点分秒元块角毛个只支枝条根张页篇位员家人户次趟遍倍折米厘克斤吨升度天周旬届岁级班%％℃]/.test(body)) return false
+  // 句中带句末标点，说明是正文句子
+  if (/[。！？；]/.test(body)) return false
+  return true
+}
+
 // 章节标题识别与统一：统一为「第X章 标题」格式
 export function convertChapterTitles(text) {
   const lines = repairMissingChapterNumbers(text.replace(/\r\n?/g, '\n').split('\n'))
@@ -89,6 +102,8 @@ export function convertChapterTitles(text) {
   const reChapterEn = /^[ \t\u3000]*(?:正文[：:]\s*)?chapter\s*(\d+)\s*(.*)$/i
   // 「N. 标题」/「N、标题」类（仅当整行较短且像标题）
   const reNumDot = /^[ \t\u3000]*(\d{1,5})\s*[\.、．]\s*(\S.{0,50})$/
+  // 「N标题」类（数字后直接跟内容，如「1测试内容」）
+  const reNumDirect = /^[ \t\u3000]*(\d{1,4})[ \t\u3000]*([^\s\d].{0,50})$/
 
   for (const rawLine of lines) {
     const line = rawLine
@@ -101,6 +116,8 @@ export function convertChapterTitles(text) {
       matched = { num: m[1], title: cleanTitle(m[2]) }
     } else if ((m = line.match(reNumDot)) && looksLikeTitle(m[2])) {
       matched = { num: m[1], title: cleanTitle(m[2]) }
+    } else if ((m = line.match(reNumDirect)) && looksLikeDirectTitle(m[2])) {
+      matched = { num: m[1], title: cleanTitle(m[2].replace(/^[章回节卷]\s*/, '')) }
     }
 
     if (matched) {

@@ -1,5 +1,5 @@
 // Service Worker：离线缓存应用外壳（图标、样式、脚本）
-const CACHE_NAME = 'reader-toolbox-v1'
+const CACHE_NAME = 'reader-toolbox-v2'
 
 const ASSETS = [
   './',
